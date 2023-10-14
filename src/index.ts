@@ -13,6 +13,8 @@ import { ReportSystem } from './report-system'
 const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.LINE_ACCESS_TOKEN || '';
 const SECRET = process.env.LINE_ACCESS_SECRET || '';
+const ADMIN_UUID = process.env.ADMIN_UUID || '';
+const TARGET_GROUP_UUID = process.env.TARGET_GROUP_UUID || '';
 
 // Setup all LINE client and Express configurations.
 const clientConfig: ClientConfig = {
@@ -55,6 +57,11 @@ function isVailedCommand(event: webhook.Event): boolean {
     if (!event.source || !(event.source as webhook.GroupSource).groupId) {
         return false;
     }
+ 
+    // not the target group
+    if ((event.source as webhook.GroupSource).groupId !== TARGET_GROUP_UUID) {
+        return false;
+    }
 
     const messageContent = messageEvent.message! as webhook.TextMessageContent;
 
@@ -66,17 +73,19 @@ function isVailedCommand(event: webhook.Event): boolean {
     return true;
 }
 
-function parseCommand(text: string): Command {
+function parseCommand(text: string, userUuid: string): Command {
     if (text.startsWith('$')) {
         // static command
-        if (text === "$reset") {
-            return Command.RESET;
-        }
-        else if (text === "$fmt") {
-            return Command.FORMAT;
-        }
-        else if (text === "$left") {
-            return Command.REMAINING;
+        if (userUuid === ADMIN_UUID) {
+            if (text === "$reset") {
+                return Command.RESET;
+            }
+            else if (text === "$fmt") {
+                return Command.FORMAT;
+            }
+            else if (text === "$left") {
+                return Command.REMAINING;
+            }
         }
 
         // report format
@@ -117,7 +126,7 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
 
     const userText = messageContent.text;
 
-    const command = parseCommand(userText);
+    const command = parseCommand(userText, messageEvent.source!.userId! as string);
     // execute the commands
     switch (command) {
         // normal user reporting
@@ -148,9 +157,10 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
             await replyFn("Reset 成功");
             return;
 
+        // people who still not reported
         case Command.REMAINING:
             await replyFn(REPORT_SYSTEM.remaining());
-            return;
+            return;        
 
         case Command.NONE:
             return;

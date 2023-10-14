@@ -18,11 +18,20 @@
 <font color="pink">**都新增在跟目錄即可**</font> 
 
 **.env**
-```md
+```sh
+# 伺服器連接埠
 PORT=<port>
+# Line 的 Access Token
 LINE_ACCESS_TOKEN=<token>
-LINE_ACCESS_SECRET=<bash>
+# Line 的 Access 金鑰
+LINE_ACCESS_SECRET=<secret>
+# 只有此 Admin 才有辦法使用其他機器人指令
+ADMIN_UUID=<uuid>
+# 機器人只會在這個群組中才會有反應
+TARGET_GROUP_UUID=<uuid>
 ```
+
+<br />
 <br />
 
 **member.json** \
