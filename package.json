@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "build": "tsc",
+    "compile": "tsc",
+    "build": "npm install && npm run compile",
     "start": "node dist/index.js",
     "dev": "ts-node index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
