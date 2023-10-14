@@ -36,26 +36,32 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
     if (event.type !== 'message') {
         return;
     }
-    console.log(event);
+    
+    // it must be in group
+    if (!event.source || !(event.source as webhook.GroupSource).groupId) {
+        return;
+    }
+    const source = event.source as webhook.GroupSource;
 
     // it must be text
     const messageEvent = event as webhook.MessageEvent;
-    if (messageEvent.message || messageEvent.message!.type !== 'text') {
+    if (messageEvent.message || (messageEvent.message!.type !== 'text')) {
         return;
     }
+    console.log("===== 51 ====");
+    console.log(messageEvent.message);
 
     const messageContent = messageEvent.message! as webhook.TextMessageContent;
 
-    console.log(messageEvent.message);
     // Process all message related variables here.
     // Create a new message.
     // Reply to the user.
-    await client.replyMessage({
-        replyToken: event.replyToken as string,
+    await client.pushMessage({
+        to: source.groupId,
         messages: [{
-            type: 'text',
-            text: messageContent.text,
-        }],
+            type: "text",
+            text: messageContent.text
+        }]
     });
 };
 
@@ -82,7 +88,7 @@ app.post('/webhook', middleware(middlewareConfig),  async (req: Request, res: Re
         const results = await Promise.all(
             events.map(async (event: webhook.Event) => {
                 try {
-                    await textEventHandler(event);
+                    return await textEventHandler(event);
                 }
                 catch (err: unknown) {
                     if (err instanceof Error) {
