@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import express, { Application, Request, Response } from 'express';
 import {
     ClientConfig,
@@ -10,6 +8,7 @@ import {
     webhook,
 } from '@line/bot-sdk';
 import 'dotenv/config'
+import { ReportSystem } from './report-system'
 
 const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.LINE_ACCESS_TOKEN || '';
@@ -27,60 +26,139 @@ const middlewareConfig: MiddlewareConfig = {
 
 
 const client = new messagingApi.MessagingApiClient(clientConfig);
-const USER_MAP = new Map();
+const REPORT_SYSTEM = new ReportSystem();
 
-
-function load() {
-    const data = fs.readFileSync(path.join(__dirname, 'member.json'), { encoding: 'utf-8' });
-    const jsonData = JSON.parse(data);
-    console.log(jsonData);
+enum Command {
+    REPORTING,
+    REPORTING_FAILED,
+    RESET,
+    FORMAT,
+    REMAINING,
+    NONE,
 }
-load();
 
 // Create a new Express application.
 const app: Application = express();
 
+function isVailedCommand(event: webhook.Event): boolean {
+    if (event.type !== 'message') {
+        return false;
+    }
+
+    // it must be in text type
+    const messageEvent = event as webhook.MessageEvent;
+    if (!messageEvent.message || (messageEvent.message!.type !== 'text')) {
+        return false;
+    }
+
+    // it must be in the group
+    if (!event.source || !(event.source as webhook.GroupSource).groupId) {
+        return false;
+    }
+
+    const messageContent = messageEvent.message! as webhook.TextMessageContent;
+
+    // is command
+    if (messageContent.text.startsWith("$") === false) {
+        return false;
+    }
+
+    return true;
+}
+
+function parseCommand(text: string): Command {
+    if (text.startsWith('$')) {
+        // static command
+        if (text === "$reset") {
+            return Command.RESET;
+        }
+        else if (text === "$fmt") {
+            return Command.FORMAT;
+        }
+        else if (text === "$left") {
+            return Command.REMAINING;
+        }
+
+        // report format
+        const regex = new RegExp(/^\$13[0-9]{3}[ ].*$/);
+        if (regex.test(text)) {
+            return Command.REPORTING;
+        }
+        else {
+            return Command.REPORTING_FAILED;
+        }    
+    }
+
+    return Command.NONE;
+}
+
 // Function handler to receive the text.
 const textEventHandler = async (event: webhook.Event): Promise<MessageAPIResponseBase | undefined> => {
-    // Process all variables here.
-    if (event.type !== 'message') {
+
+    if (isVailedCommand(event) === false) {
         return;
     }
     
     // it must be message event
     const messageEvent = event as webhook.MessageEvent;
-    if (!messageEvent.message || (messageEvent.message!.type !== 'text')) {
-        return;
-    }
-
-    // it must be in group
-    if (!event.source || !(event.source as webhook.GroupSource).groupId) {
-        return;
-    }
-    const eventSoruce = messageEvent.source! as webhook.GroupSource;
-
     const messageContent = messageEvent.message! as webhook.TextMessageContent;
 
-    // Process all message related variables here.
-    // Create a new message.
-    // Reply to the user.
-    // await client.pushMessage({
-    //     to: eventSoruce.groupId,
-    //     messages: [{
-    //         type: "text",
-    //         text: messageContent.text
-    //     }]
-    // });
-    await client.replyMessage({
+    // reply function
+    const replyFn = (msg: string, quote: boolean = true) => client.replyMessage({
         replyToken: messageEvent.replyToken!,
         notificationDisabled: true,
         messages: [{
             replyToken: messageEvent.replyToken!,
-            quoteToken: messageContent.quoteToken!,
+            quoteToken: quote ? messageContent.quoteToken! : undefined,
             type: "text",
-            text: "收到",
+            text: msg,
         }],
-    })
+    });
+
+    const userText = messageContent.text;
+
+    const command = parseCommand(userText);
+    // execute the commands
+    switch (command) {
+        // normal user reporting
+        case Command.REPORTING:
+            const index = userText.indexOf(' ');
+            try {
+                REPORT_SYSTEM.setUserMsg(userText.slice(1, index), userText.slice(index + 1));
+                await replyFn("收到");
+            }
+            catch (e) {
+                await replyFn("Id 不存在");
+            }
+            return;
+        
+        // normal user report failed
+        case Command.REPORTING_FAILED:
+            await replyFn("回報格式不符\n格式:\"$<號碼><空白><做甚麼>\"");
+            return;
+
+        // format the report result
+        case Command.FORMAT:
+            await replyFn(REPORT_SYSTEM.format(), false);
+            return;
+
+        // format the report result
+        case Command.RESET:
+            REPORT_SYSTEM.reset();
+            await replyFn("Reset 成功");
+            return;
+
+        case Command.REMAINING:
+            await replyFn(REPORT_SYSTEM.remaining());
+            return;
+
+        case Command.NONE:
+            return;
+        default:
+            break;
+    }
+
+
 };
 
 // Register the LINE middleware.
