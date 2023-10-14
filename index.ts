@@ -41,12 +41,10 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
         return;
     }
     const source = event.source as webhook.GroupSource;
-    console.log("===== 45 ====");
-    console.log(event);
 
     // it must be message event
     const messageEvent = event as webhook.MessageEvent;
-    if (messageEvent.message || (messageEvent.message!.type !== 'text')) {
+    if (!messageEvent.message || (messageEvent.message!.type !== 'text')) {
         return;
     }
     console.log("===== 51 ====");
