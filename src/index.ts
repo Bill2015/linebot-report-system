@@ -57,6 +57,12 @@ function isVailedCommand(event: webhook.Event): boolean {
     if (!event.source || !(event.source as webhook.GroupSource).groupId) {
         return false;
     }
+
+    // it must be have user
+    if (!event.source || !(event.source as webhook.GroupSource).userId) {
+        return false;
+    }
+    console.log(event.source)
  
     // not the target group
     if ((event.source as webhook.GroupSource).groupId !== TARGET_GROUP_UUID) {
