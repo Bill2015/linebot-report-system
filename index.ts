@@ -28,6 +28,12 @@ const client = new messagingApi.MessagingApiClient(clientConfig);
 
 // Create a new Express application.
 const app: Application = express();
+app.use(express.json());
+app.use(
+    express.urlencoded({
+        extended: true,
+    })
+);
 
 // Function handler to receive the text.
 const textEventHandler = async (event: webhook.Event): Promise<MessageAPIResponseBase | undefined> => {
@@ -35,6 +41,8 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
     if (event.type !== 'message') {
         return;
     }
+    console.log(event);
+
     // it must be text
     const messageEvent = event as webhook.MessageEvent;
     if (messageEvent.message || messageEvent.message!.type !== 'text') {
@@ -43,7 +51,7 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
 
     const messageContent = messageEvent.message! as webhook.TextMessageContent;
 
-    
+    console.log(messageEvent.message);
     // Process all message related variables here.
     // Create a new message.
     // Reply to the user.
