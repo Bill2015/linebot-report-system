@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import express, { Application, Request, Response } from 'express';
 import {
     ClientConfig,
@@ -25,6 +27,15 @@ const middlewareConfig: MiddlewareConfig = {
 
 
 const client = new messagingApi.MessagingApiClient(clientConfig);
+const USER_MAP = new Map();
+
+
+function load() {
+    const data = fs.readFileSync(path.join(__dirname, 'member.json'), { encoding: 'utf-8' });
+    const jsonData = JSON.parse(data);
+    console.log(jsonData);
+}
+load();
 
 // Create a new Express application.
 const app: Application = express();
@@ -36,32 +47,40 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
         return;
     }
     
-    // it must be in group
-    if (!event.source || !(event.source as webhook.GroupSource).groupId) {
-        return;
-    }
-    const source = event.source as webhook.GroupSource;
-
     // it must be message event
     const messageEvent = event as webhook.MessageEvent;
     if (!messageEvent.message || (messageEvent.message!.type !== 'text')) {
         return;
     }
-    console.log("===== 51 ====");
-    console.log(messageEvent.message);
+
+    // it must be in group
+    if (!event.source || !(event.source as webhook.GroupSource).groupId) {
+        return;
+    }
+    const eventSoruce = messageEvent.source! as webhook.GroupSource;
 
     const messageContent = messageEvent.message! as webhook.TextMessageContent;
 
     // Process all message related variables here.
     // Create a new message.
     // Reply to the user.
-    await client.pushMessage({
-        to: source.groupId,
+    // await client.pushMessage({
+    //     to: eventSoruce.groupId,
+    //     messages: [{
+    //         type: "text",
+    //         text: messageContent.text
+    //     }]
+    // });
+    await client.replyMessage({
+        replyToken: messageEvent.replyToken!,
+        notificationDisabled: true,
         messages: [{
+            replyToken: messageEvent.replyToken!,
+            quoteToken: messageContent.quoteToken!,
             type: "text",
-            text: messageContent.text
-        }]
-    });
+            text: "收到",
+        }],
+    })
 };
 
 // Register the LINE middleware.
