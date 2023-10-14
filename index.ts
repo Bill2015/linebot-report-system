@@ -29,12 +29,6 @@ const client = new messagingApi.MessagingApiClient(clientConfig);
 console.log(middlewareConfig);
 // Create a new Express application.
 const app: Application = express();
-app.use(express.json());
-app.use(
-    express.urlencoded({
-        extended: true,
-    })
-);
 
 // Function handler to receive the text.
 const textEventHandler = async (event: webhook.Event): Promise<MessageAPIResponseBase | undefined> => {
