@@ -62,17 +62,18 @@ function isVailedCommand(event: webhook.Event): boolean {
     if (!event.source || !(event.source as webhook.GroupSource).userId) {
         return false;
     }
-    console.log(event.source)
- 
-    // not the target group
-    if ((event.source as webhook.GroupSource).groupId !== TARGET_GROUP_UUID) {
-        return false;
-    }
 
     const messageContent = messageEvent.message! as webhook.TextMessageContent;
 
     // is command
     if (messageContent.text.startsWith("$") === false) {
+        return false;
+    }
+
+    console.log(event.source)
+ 
+    // not the target group
+    if ((event.source as webhook.GroupSource).groupId !== TARGET_GROUP_UUID) {
         return false;
     }
 
@@ -99,9 +100,6 @@ function parseCommand(text: string, userUuid: string): Command {
         if (regex.test(text)) {
             return Command.REPORTING;
         }
-        else {
-            return Command.REPORTING_FAILED;
-        }    
     }
 
     return Command.NONE;
