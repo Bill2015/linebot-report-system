@@ -143,7 +143,7 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
                 await replyFn("收到");
             }
             catch (e) {
-                await replyFn("Id 不存在");
+                await replyFn("編號不存在");
             }
             return;
         

@@ -28,7 +28,6 @@ export class ReportSystem {
         this.userdata.forEach((val) => {
             val.msg = '';
         });
-        console.log(this.userdata);
     }
 
     setUserMsg(userId: string, msg: string) {
