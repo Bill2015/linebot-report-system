@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { ISimpleDB } from './file-database';
 
-export interface User {
+export interface UserInfo {
     id: string;
     name: string;
     msg: string;
@@ -9,25 +10,21 @@ export interface User {
 
 
 export class ReportSystem {
-    userdata = new Map<string, User>();
+    db: ISimpleDB;
+    userdata = new Map<string, UserInfo>();
 
-    constructor() {
-        const data = fs.readFileSync(path.join(__dirname, 'member.json'), { encoding: 'utf-8' });
-        const jsonData = JSON.parse(data);
-        
-        for (const [id, name] of Object.entries<string>(jsonData)) {
-            this.userdata.set(id, {
-                id: id,
-                name: name,
-                msg: '',
-            });
-        }
+    constructor(db: ISimpleDB) {
+        this.db = db;
+        this.userdata = this.db.load();
     }
 
     reset() {
         this.userdata.forEach((val) => {
             val.msg = '';
         });
+
+        // save to database
+        this.db.save(this.userdata);
     }
 
     setUserMsg(userId: string, msg: string) {
@@ -36,11 +33,14 @@ export class ReportSystem {
             this.userdata.set(userId, {
                 ...data,
                 msg: msg,
-            })
+            });
         }
         else {
             throw Error("使用者 Id 輸入錯誤或不存在")
         }
+
+        // save to database
+        this.db.save(this.userdata);
     }
 
     format() {

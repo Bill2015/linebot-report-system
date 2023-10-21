@@ -9,6 +9,7 @@ import {
 } from '@line/bot-sdk';
 import 'dotenv/config'
 import { ReportSystem } from './report-system'
+import { FileDB } from './file-database';
 
 const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.LINE_ACCESS_TOKEN || '';
@@ -28,7 +29,8 @@ const middlewareConfig: MiddlewareConfig = {
 
 
 const client = new messagingApi.MessagingApiClient(clientConfig);
-const REPORT_SYSTEM = new ReportSystem();
+const DATABASE = new FileDB();
+const REPORT_SYSTEM = new ReportSystem(DATABASE);
 
 enum Command {
     REPORTING,
@@ -70,7 +72,7 @@ function isVailedCommand(event: webhook.Event): boolean {
         return false;
     }
 
-    console.log(event.source)
+    console.log(`Type: ${event.source.type} UserId: ${event.source.userId}, GruopId: ${(event.source as webhook.GroupSource).groupId}`)
  
     // not the target group
     if ((event.source as webhook.GroupSource).groupId !== TARGET_GROUP_UUID) {
@@ -172,8 +174,6 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
         default:
             break;
     }
-
-
 };
 
 // Register the LINE middleware.
