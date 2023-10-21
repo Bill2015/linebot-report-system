@@ -138,7 +138,8 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
             const index = userText.indexOf(' ');
             try {
                 REPORT_SYSTEM.setUserMsg(userText.slice(1, index), userText.slice(index + 1));
-                await replyFn("收到");
+                // await replyFn("收到");
+                console.log(`${userText} ---- 收到`);
             }
             catch (e) {
                 await replyFn("編號不存在");
