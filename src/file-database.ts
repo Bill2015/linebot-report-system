@@ -4,15 +4,19 @@ import * as path from 'path';
 import { UserInfo } from 'report-system';
 
 export interface ISimpleDB {
-    load(): Map<string, UserInfo>;
+    load(): Promise<Map<string, UserInfo>>;
 
-    save(data: Map<string, UserInfo>): void;
+    update(userId: string, msg: string): Promise<void>;
+
+    save(data: Map<string, UserInfo>): Promise<void>;
 }
 
 export class FileDB implements ISimpleDB {
+    private userdata = new Map<string, UserInfo>();
+
     constructor() {}
 
-    public load() {
+    async load() {
         const data = new Map<string, UserInfo>();
 
         if (fs.existsSync(path.join(__dirname, 'data.json')) === false) {
@@ -44,8 +48,24 @@ export class FileDB implements ISimpleDB {
         return data;
     }
 
-    public save(data: Map<string, UserInfo>) {
+    async update(userId: string, msg: string) {
+        if (this.userdata.size <= 0) {
+            this.userdata = await this.load();
+        }
+        if (this.userdata.has(userId)) {
+            this.userdata.set(userId, {
+                ...this.userdata.get(userId)!,
+                msg: msg,
+            });
+        }
+        else {
+            throw Error("使用者 Id 輸入錯誤或不存在")
+        }
+        await this.save(this.userdata);
+    }
+
+    async save(data: Map<string, UserInfo>) {
         const streamData = JSON.stringify(Array.from(data.values()));
-        fs.writeFileSync(path.join(__dirname, './data.json'), streamData, { encoding: 'utf-8' });
+        fs.writeFileSync(path.join(__dirname, 'data.json'), streamData, { encoding: 'utf-8' });
     }
 }

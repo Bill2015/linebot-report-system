@@ -1,6 +1,8 @@
 # LineBot 回報機器人
 一個簡單的回報機器人，省去一些小麻煩 \
-順便練習一下LineBot串接跟部屬
+順便練習一下LineBot串接跟部屬 \
+並且使用了 Google 的 Firebase 去做資料儲存 \
+或者是 Local 的資料儲存方式
 
 ## 前置需求
 - Line 帳號
@@ -10,6 +12,8 @@
     > Line Bot 環境測試用，因為 Line Bot 強制需要用 SSL 憑證
 - 可選 [render](https://render.com/)
     > 雲端伺服器架設，免費的
+- 可選 [FireBase](https://firebase.google.com/)
+    > 雲端資料庫
 
 ## 環境檔案
 當你 Clone 完專案後 \
@@ -19,6 +23,8 @@
 
 **.env**
 ```sh
+# 資料儲存類型 (local、firebase)
+STORAGE_TYPE="local"|"firebase"
 # 伺服器連接埠
 PORT=<port>
 # Line 的 Access Token
@@ -29,6 +35,16 @@ LINE_ACCESS_SECRET=<secret>
 ADMIN_UUID=<uuid>
 # 機器人只會在這個群組中才會有反應
 TARGET_GROUP_UUID=<uuid>
+
+# FireBase 相關
+# 如果用 Local 澤都不用填寫
+FIREBASE_API_KEY=<apiKey>
+FIREBASE_AUTH_DOMAIN=<authDomain>
+FIREBASE_PROJECT_ID=<projectId>
+FIREBASE_STORAGE_BUCKET=<storageBucket>
+FIREBASE_MESSAGE_SENDER_ID=<messagingSenderId>
+FIREBASE_APP_ID=<appId>
+FIREBASE_MEASUREMENT_ID=<measurementId>
 ```
 
 <br />

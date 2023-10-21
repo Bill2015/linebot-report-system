@@ -10,8 +10,10 @@ import {
 import 'dotenv/config'
 import { Command, parseCommand } from './command';
 import { ReportSystem } from './report-system'
+import { FireBaseDB } from './firebase-database';
 import { FileDB } from './file-database';
 
+const STORAGE_TYPE = process.env.STORAGE_TYPE || 'local';
 const PORT = process.env.PORT || 3000;
 const TOKEN = process.env.LINE_ACCESS_TOKEN || '';
 const SECRET = process.env.LINE_ACCESS_SECRET || '';
@@ -30,8 +32,7 @@ const middlewareConfig: MiddlewareConfig = {
 
 
 const client = new messagingApi.MessagingApiClient(clientConfig);
-const DATABASE = new FileDB();
-const REPORT_SYSTEM = new ReportSystem(DATABASE);
+const REPORT_SYSTEM = new ReportSystem(STORAGE_TYPE === 'local' ? new FileDB() : new FireBaseDB());
 
 // Create a new Express application.
 const app: Application = express();
@@ -106,7 +107,7 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
         case Command.REPORTING:
             const index = userText.indexOf(' ');
             try {
-                REPORT_SYSTEM.setUserMsg(userText.slice(1, index), userText.slice(index + 1));
+                await REPORT_SYSTEM.setUserMsg(userText.slice(1, index), userText.slice(index + 1));
                 // await replyFn("收到");
                 console.log(`${userText} ---- 收到`);
             }
@@ -122,18 +123,18 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
 
         // format the report result
         case Command.FORMAT:
-            await replyFn(REPORT_SYSTEM.format(), false);
+            await replyFn(await REPORT_SYSTEM.format(), false);
             return;
 
         // format the report result
         case Command.RESET:
-            REPORT_SYSTEM.reset();
+            await REPORT_SYSTEM.reset();
             await replyFn("Reset 成功");
             return;
 
         // people who still not reported
         case Command.REMAINING:
-            await replyFn(REPORT_SYSTEM.remaining());
+            await replyFn(await REPORT_SYSTEM.remaining());
             return;        
 
         case Command.NONE:
