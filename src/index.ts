@@ -8,6 +8,7 @@ import {
     webhook,
 } from '@line/bot-sdk';
 import 'dotenv/config'
+import { Command, parseCommand } from './command';
 import { ReportSystem } from './report-system'
 import { FileDB } from './file-database';
 
@@ -31,15 +32,6 @@ const middlewareConfig: MiddlewareConfig = {
 const client = new messagingApi.MessagingApiClient(clientConfig);
 const DATABASE = new FileDB();
 const REPORT_SYSTEM = new ReportSystem(DATABASE);
-
-enum Command {
-    REPORTING,
-    REPORTING_FAILED,
-    RESET,
-    FORMAT,
-    REMAINING,
-    NONE,
-}
 
 // Create a new Express application.
 const app: Application = express();
@@ -82,31 +74,6 @@ function isVailedCommand(event: webhook.Event): boolean {
     return true;
 }
 
-function parseCommand(text: string, userUuid: string): Command {
-    if (text.startsWith('$')) {
-        // static command
-        if (userUuid === ADMIN_UUID) {
-            if (text === "$reset") {
-                return Command.RESET;
-            }
-            else if (text === "$fmt") {
-                return Command.FORMAT;
-            }
-            else if (text === "$left") {
-                return Command.REMAINING;
-            }
-        }
-
-        // report format
-        const regex = new RegExp(/^\$13[0-9]{3}[ ].*$/);
-        if (regex.test(text)) {
-            return Command.REPORTING;
-        }
-    }
-
-    return Command.NONE;
-}
-
 // Function handler to receive the text.
 const textEventHandler = async (event: webhook.Event): Promise<MessageAPIResponseBase | undefined> => {
 
@@ -132,7 +99,7 @@ const textEventHandler = async (event: webhook.Event): Promise<MessageAPIRespons
 
     const userText = messageContent.text;
 
-    const command = parseCommand(userText, messageEvent.source!.userId! as string);
+    const command = parseCommand(userText, messageEvent.source!.userId! as string, ADMIN_UUID);
     // execute the commands
     switch (command) {
         // normal user reporting
