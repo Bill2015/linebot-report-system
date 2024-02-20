@@ -25,7 +25,7 @@ export function parseCommand(text: string, userUuid: string, adminUuid: string):
         }
 
         // report format
-        const regex = new RegExp(/^\$13[0-9]{3}[ ].*$/);
+        const regex = new RegExp(/[0-9]{5}[ ].*$/);
         if (regex.test(text)) {
             return Command.REPORTING;
         }

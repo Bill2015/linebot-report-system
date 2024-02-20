@@ -34,7 +34,7 @@ export class ReportSystem {
     async format() {
         const userdata = await this.db.load();
         return Array.from(userdata.values())
-            .map((val) => `${val.id} ${val.name}：${val.msg ? val.msg : '待查'}`)
+            .map((val) => `${val.id} ${val.name}：${val.msg ? val.msg : '尚未回報'}`)
             .join('\n');
     }
 
