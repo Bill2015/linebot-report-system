@@ -6,12 +6,10 @@
 
 ## 展示
 
-<p float="middle">
-    <img align="left" width="48%" src="https://github.com/Bill2015/linebot-report-system/blob/master/docs/example1.png" />
-    <img align="right" width="48%" src="https://github.com/Bill2015/linebot-report-system/blob/master/docs/example2.png" />
-</p>
+回報 | 格式化回報資料
+--- | ---
+![](https://github.com/Bill2015/linebot-report-system/blob/master/docs/example1.png) | ![](https://github.com/Bill2015/linebot-report-system/blob/master/docs/example2.png)
 
-.
 
 ## 前置需求
 - Line 帳號
