@@ -6,10 +6,10 @@
 
 ## 展示
 
-<div>
+<p float="middle">
     <img align="left" width="48%" src="https://github.com/Bill2015/linebot-report-system/blob/master/docs/example1.png" />
     <img align="right" width="48%" src="https://github.com/Bill2015/linebot-report-system/blob/master/docs/example2.png" />
-</div>
+</p>
 
 .
 
