@@ -4,6 +4,15 @@
 並且使用了 Google 的 Firebase 去做資料儲存 \
 或者是 Local 的資料儲存方式
 
+## 展示
+
+<div>
+    <img align="left" width="48%" src="https://github.com/Bill2015/linebot-report-system/blob/master/docs/example1.png" />
+    <img align="right" width="48%" src="https://github.com/Bill2015/linebot-report-system/blob/master/docs/example2.png" />
+</div>
+
+.
+
 ## 前置需求
 - Line 帳號
 - Line 機器人帳號
